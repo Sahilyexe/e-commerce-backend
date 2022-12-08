@@ -1,82 +1,376 @@
-AWSTemplateFormatVersion: "2010-09-09"
-Transform: AWS::Serverless-2016-10-31
-Description: >
-  e-commerce-backend
+# Plantilla SAM con los recursos serverless necesarios para 
 
-  Sample SAM Template for e-commerce-backend
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  actualizacion-datos-bakend
 
+# Transform section specifies one or more macros that AWS CloudFormation uses to process your template
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-section-structure.html
+Transform:
+- AWS::Serverless-2016-10-31
+
+Parameters:
+  EndpointSubcription:
+    Type: String
+# Resources declares the AWS resources that you want to include in the stack
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resources-section-structure.html
 Resources:
-  StockTradingStateMachine:
-    Type: AWS::Serverless::StateMachine # More info about State Machine Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-statemachine.html
+  # Each Lambda function is defined by properties:
+  # https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+
+  # This is a Lambda function config associated with the source code: put-item.js
+  crearsesion:
+    Type: AWS::Serverless::Function
     Properties:
-      DefinitionUri: statemachine/stock_trader.asl.json
-      DefinitionSubstitutions:
-        StockCheckerFunctionArn: !GetAtt StockCheckerFunction.Arn
-        StockSellerFunctionArn: !GetAtt StockSellerFunction.Arn
-        StockBuyerFunctionArn: !GetAtt StockBuyerFunction.Arn
-        DDBPutItem: !Sub arn:${AWS::Partition}:states:::dynamodb:putItem
-        DDBTable: !Ref TransactionTable
+      Handler: src/handlers/put-sesion.putItemHandler
+      Runtime: nodejs14.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: A simple example includes a HTTP post method to add one item to a DynamoDB table.
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the SampleTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref sesion
+      Environment:
+        Variables:
+          # Make table name accessible as environment variable from function code during execution
+          TABLE_CARRITO: !Ref sesion
       Events:
-        HourlyTradingSchedule:
-          Type: Schedule # More info about Schedule Event Source: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-statemachine-schedule.html
+        Api:
+          Type: Api
           Properties:
-            Description: Schedule to run the stock trading state machine every hour
-            Enabled: False # This schedule is disabled by default to avoid incurring charges.
-            Schedule: "rate(1 hour)"
-      Policies: # Find out more about SAM policy templates: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-templates.html
-        - LambdaInvokePolicy:
-            FunctionName: !Ref StockCheckerFunction
-        - LambdaInvokePolicy:
-            FunctionName: !Ref StockSellerFunction
-        - LambdaInvokePolicy:
-            FunctionName: !Ref StockBuyerFunction
-        - DynamoDBWritePolicy:
-            TableName: !Ref TransactionTable
-
-  StockCheckerFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html
-    Properties:
-      CodeUri: functions/stock-checker/
-      Handler: app.lambdaHandler
-      Runtime: nodejs14.x
-      Architectures:
-        - x86_64
-
-  StockSellerFunction:
+            Path: /crearsesion
+            Method: POST
+       #     RestApiId: !Ref ApiGatewayApi
+  crearorden:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: functions/stock-seller/
-      Handler: app.lambdaHandler
+      Handler: src/handlers/put-orden.putItemHandler
       Runtime: nodejs14.x
       Architectures:
         - x86_64
-
-  StockBuyerFunction:
+      MemorySize: 128
+      Timeout: 100
+      Description: esta tabla guarda ya la compra final.
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the SampleTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref orden
+      Environment:
+        Variables:
+          # Make table name accessible as environment variable from function code during execution
+          TABLE_ORDEN: !Ref orden
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /crearOrden
+            Method: POST
+       #     RestApiId: !Ref ApiGatewayApi
+  getsesion:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: functions/stock-buyer/
-      Handler: app.lambdaHandler
+      Handler: src/handlers/get-sesion.getByIdHandler
       Runtime: nodejs14.x
       Architectures:
         - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Metodo para consultar a traves de un id.
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the SampleTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref sesion
+      Environment:
+        Variables:
+          # Make table name accessible as environment variable from function code during execution
+          TABLE_CARRITO: !Ref sesion
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /obtenerOrden/{id}
+            Method: GET
 
-  TransactionTable:
-    Type: AWS::Serverless::SimpleTable # More info about SimpleTable Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-simpletable.html
+  publishSMS:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/publish-sms.publishHandler
+      Runtime: nodejs14.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Metodo para consultar a traves de un id.
+      Role: !GetAtt RootRole.Arn
+      
+  RootRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: RolEjecucionLambda
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: '*'
+        - PolicyName: RolPublish
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sns:*
+                Resource: '*'
+  crearproducto:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/put-producto.putItemHandler
+      Runtime: nodejs14.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Aqui se almacenan los productos cuando los creas
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the SampleTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref producto
+        - S3CrudPolicy: 
+            BucketName: !Ref WebBucket
+      Environment:
+        Variables:
+          # Make table name accessible as environment variable from function code during execution
+          TABLE_PRODUCTO: !Ref producto
+          WEB_BUCKET: !Sub e-commerce-${AWS::Region}-${AWS::AccountId}
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /crearproducto
+            Method: POST
+       #     RestApiId: !Ref ApiGatewayApi
+  getProductos:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/get-productos.getByIdHandler
+      Runtime: nodejs14.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Se consultas todos los productos
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the SampleTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref producto
+      Environment:
+        Variables:
+          # Make table name accessible as environment variable from function code during execution
+          TABLE_PRODUCTO: !Ref producto
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /getProductos
+            Method: GET
+  getProducto:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/get-producto.getByIdHandler
+      Runtime: nodejs14.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Se consulta un producto
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the SampleTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref producto
+      Environment:
+        Variables:
+          # Make table name accessible as environment variable from function code during execution
+          TABLE_PRODUCTO: !Ref producto
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /getProducto/{id}
+            Method: GET
+
+  RebajarDelStock:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/rebajar-stock.rebajarStockIdHandler
+      Runtime: nodejs14.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Se consulta un producto
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the SampleTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref producto
+      Environment:
+        Variables:
+          # Make table name accessible as environment variable from function code during execution
+          TABLE_PRODUCTO: !Ref producto          
+
+ 
+  producto:
+    Type: AWS::Serverless::SimpleTable
     Properties:
       PrimaryKey:
-        Name: Id
+        Name: id
         Type: String
       ProvisionedThroughput:
-        ReadCapacityUnits: 1
-        WriteCapacityUnits: 1
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
+  
+  sesion:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: id
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
 
+  orden:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: id
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
+
+  WebBucket:
+    Type: AWS::S3::Bucket
+    Properties: 
+     BucketName: !Sub 'e-commerce-${AWS::Region}-${AWS::AccountId}'
+     VersioningConfiguration: 
+      Status: 'Enabled'
+     PublicAccessBlockConfiguration: 
+       BlockPublicAcls: false
+       BlockPublicPolicy: false
+       IgnorePublicAcls: false
+       RestrictPublicBuckets: false
+     BucketEncryption:
+       ServerSideEncryptionConfiguration:
+         - ServerSideEncryptionByDefault:
+             SSEAlgorithm: 'AES256'
+     WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
+   
+   
+  BucketPolicyWebSite:
+    Type: AWS::S3::BucketPolicy
+    Properties: 
+      Bucket: !Ref WebBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action:
+              - 's3:GetObject'
+            Effect: Allow
+            Resource: !Join
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref WebBucket
+                - /*
+            Principal: '*'
+  # EccomerceStateMachine:
+  #   Type: AWS::Serverless::StateMachine # More info about State Machine Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-statemachine.html
+  #   Properties:
+  #     DefinitionUri: statemachine/stocky_trader.asl.json
+  #     DefinitionSubstitutions:
+  #       RebajarInventarioArn: !GetAtt RebajarDelStock.Arn
+  #       ProductoTable: !Ref producto
+  #       AprobationActivity: !GetAtt AprobacionActivity.Arn
+  #       SendEmailByNotification: !GetAtt StockBuyerFunction.Arn
+  #       DDBPutItem: !Sub arn:${AWS::Partition}:states:::dynamodb:putItem
+  #       
+  #     Events:
+  #       HourlyTradingSchedule:
+  #         Type: Schedule # More info about Schedule Event Source: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-statemachine-schedule.html
+  #         Properties:
+  #           Description: Schedule to run the stock trading state machine every hour
+  #           Enabled: False # This schedule is disabled by default to avoid incurring charges.
+  #           Schedule: "rate(1 hour)"
+  #     Policies: # Find out more about SAM policy templates: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-templates.html
+  #       - LambdaInvokePolicy:
+  #           FunctionName: !Ref StockCheckerFunction
+  #       - LambdaInvokePolicy:
+  #           FunctionName: !Ref StockSellerFunction
+  #       - LambdaInvokePolicy:
+  #           FunctionName: !Ref StockBuyerFunction
+  #       - DynamoDBWritePolicy:
+  #           TableName: !Ref TransactionTable
+
+  MySNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      Subscription:
+        - Endpoint: 
+            !Ref EndpointSubcription
+          Protocol: email
+        
+      TopicName: NotificaNuevaCompra
+
+  AprobacionActivity:
+    Type: AWS::StepFunctions::Activity
+    Properties: 
+      Name: maker-checker
+
+  AprobacionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/send-success-failure.aprobacionHandler
+      Runtime: nodejs14.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Se aprueba o se rechaza la compra
+      Role: arn:aws:iam::103504445265:role/service-role/aprobacion-compra-role-8h6vwqip
+      Environment:
+        Variables:
+          # Make table name accessible as environment variable from function code during execution
+          ACTIVITY: !GetAtt AprobacionActivity.Arn
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /aprobaciones/{id}
+            Method: POST
 Outputs:
-  # StockTradingStateMachineHourlyTradingSchedule is an implicit Schedule event rule created out of Events key under Serverless::StateMachine
-  # Find out more about other implicit resources you can reference within SAM
-  # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-specification-generated-resources.html
-  StockTradingStateMachineArn:
-    Description: "Stock Trading state machine ARN"
-    Value: !Ref StockTradingStateMachine
-  StockTradingStateMachineRole:
-    Description: "IAM Role created for Stock Trading state machine based on the specified SAM Policy Templates"
-    Value: !GetAtt StockTradingStateMachineRole.Arn
+  WebEndpoint:
+    Description: "API Gateway endpoint URL for Prod stage"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+
+  WebBucket:
+    Description: "Bucket donde se guarda el front"
+    Value: !Sub 'e-commerce-${AWS::Region}-${AWS::AccountId}'
+

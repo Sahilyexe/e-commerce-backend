@@ -1,97 +1,176 @@
 {
-    "Comment": "A state machine that does mock stock trading.",
-    "StartAt": "Check Stock Value",
-    "States": {
-        "Check Stock Value": {
-            "Type": "Task",
-            "Resource": "${StockCheckerFunctionArn}",
-            "Retry": [
-                {
-                    "ErrorEquals": [
-                        "States.TaskFailed"
-                    ],
-                    "IntervalSeconds": 15,
-                    "MaxAttempts": 5,
-                    "BackoffRate": 1.5
+  "Comment": "A description of my state machine",
+  "StartAt": "Parallel",
+  "States": {
+    "Parallel": {
+      "Type": "Parallel",
+      "Branches": [
+        {
+          "StartAt": "Envia notificacion",
+          "States": {
+            "Envia notificacion": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::sns:publish",
+              "Parameters": {
+                "TopicArn": "arn:aws:sns:us-east-1:103504445265:NotifyMeBilling",
+                "Message": {
+                  "mensaje": "Acaban de realizar una compra"
                 }
-            ],
-            "Next": "Buy or Sell?"
+              },
+              "End": true
+            }
+          }
         },
-        "Buy or Sell?": {
-            "Type": "Choice",
-            "Choices": [
-                {
-                    "Variable": "$.stock_price",
-                    "NumericLessThanEquals": 50,
-                    "Next": "Buy Stock"
-                }
-            ],
-            "Default": "Sell Stock"
-        },
-        "Sell Stock": {
-            "Type": "Task",
-            "Resource": "${StockSellerFunctionArn}",
-            "Retry": [
-                {
-                    "ErrorEquals": [
-                        "States.TaskFailed"
-                    ],
-                    "IntervalSeconds": 2,
-                    "MaxAttempts": 3,
-                    "BackoffRate": 1
-                }
-            ],
-            "Next": "Record Transaction"
-        },
-        "Buy Stock": {
-            "Type": "Task",
-            "Resource": "${StockBuyerFunctionArn}",
-            "Retry": [
-                {
-                    "ErrorEquals": [
-                        "States.TaskFailed"
-                    ],
-                    "IntervalSeconds": 2,
-                    "MaxAttempts": 3,
-                    "BackoffRate": 1
-                }
-            ],
-            "Next": "Record Transaction"
-        },
-        "Record Transaction": {
-            "Type": "Task",
-            "Resource": "${DDBPutItem}",
-            "Parameters": {
-                "TableName": "${DDBTable}",
-                "Item": {
-                    "Id": {
-                        "S.$": "$.id"
+        {
+          "StartAt": "Map",
+          "States": {
+            "Map": {
+              "Type": "Map",
+              "ItemProcessor": {
+                "ProcessorConfig": {
+                  "Mode": "INLINE"
+                },
+                "StartAt": "DynamoDB GetItem",
+                "States": {
+                  "DynamoDB GetItem": {
+                    "Type": "Task",
+                    "Resource": "arn:aws:states:::dynamodb:getItem",
+                    "Parameters": {
+                      "TableName": "mock-producto-2MOR91TQ9Y8J",
+                      "AttributesToGet": [
+                        "cantidadStock",
+                        "id"
+                      ],
+                      "Key": {
+                        "id": {
+                          "S.$": "$.id"
+                        }
+                      }
                     },
-                    "Type": {
-                        "S.$": "$.type"
-                    },
-                    "Price": {
-                        "N.$": "$.price"
-                    },
-                    "Quantity": {
-                        "N.$": "$.qty"
-                    },
-                    "Timestamp": {
-                        "S.$": "$.timestamp"
+                    "ResultPath": "$.stock",
+                    "Next": "Choice",
+                    "ResultSelector": {
+                      "cantidadStock.$": "$.Item.cantidadStock.N"
                     }
-                }
-            },
-            "Retry": [
-                {
-                    "ErrorEquals": [
-                        "States.TaskFailed"
+                  },
+                  "Choice": {
+                    "Type": "Choice",
+                    "Choices": [
+                      {
+                        "Variable": "$.stock.cantidadStock",
+                        "StringGreaterThanEqualsPath": "$.cantidadCompra",
+                        "Next": "Rebaja del inventario"
+                      }
                     ],
-                    "IntervalSeconds": 20,
-                    "MaxAttempts": 5,
-                    "BackoffRate": 10
+                    "Default": "SNS Publish"
+                  },
+                  "Rebaja del inventario": {
+                    "Type": "Task",
+                    "Resource": "arn:aws:states:::lambda:invoke",
+                    "Parameters": {
+                      "FunctionName": "arn:aws:lambda:us-east-1:103504445265:function:mock-RebajarDelStock-rklWgBOJcRB9:$LATEST",
+                      "Payload": {
+                        "cantidadStock.$": "$.stock.cantidadStock",
+                        "cantidadCompra.$": "$.cantidadCompra",
+                        "id.$": "$.id"
+                      }
+                    },
+                    "Retry": [
+                      {
+                        "ErrorEquals": [
+                          "Lambda.ServiceException",
+                          "Lambda.AWSLambdaException",
+                          "Lambda.SdkClientException",
+                          "Lambda.TooManyRequestsException"
+                        ],
+                        "IntervalSeconds": 2,
+                        "MaxAttempts": 6,
+                        "BackoffRate": 2
+                      }
+                    ],
+                    "ResultPath": null,
+                    "Next": "Enviar aprobacion"
+                  },
+                  "Enviar aprobacion": {
+                    "Type": "Task",
+                    "Resource": "arn:aws:states:::sns:publish",
+                    "Parameters": {
+                      "TopicArn": "arn:aws:sns:us-east-1:103504445265:NotifyMeBilling",
+                      "Message": {
+                        "success": "https://sako8j8lp7.execute-api.us-east-1.amazonaws.com/Prod/aprobacion"
+                      }
+                    },
+                    "ResultPath": null,
+                    "Next": "Step Functions Run Activity"
+                  },
+                  "Step Functions Run Activity": {
+                    "Type": "Task",
+                    "Resource": "arn:aws:states:us-east-1:103504445265:activity:aprobacion",
+                    "TimeoutSeconds": 300,
+                    "Next": "Aprobo?",
+                    "ResultPath": "$.output"
+                  },
+                  "Aprobo?": {
+                    "Type": "Choice",
+                    "Choices": [
+                      {
+                        "Variable": "$.output",
+                        "NumericEquals": 201,
+                        "Next": "DynamoDB UpdateItem"
+                      }
+                    ],
+                    "Default": "Success"
+                  },
+                  "DynamoDB UpdateItem": {
+                    "Type": "Task",
+                    "Resource": "arn:aws:states:::dynamodb:updateItem",
+                    "Parameters": {
+                      "TableName": "mock-producto-2MOR91TQ9Y8J",
+                      "Key": {
+                        "id": {
+                          "S.$": "$.id"
+                        }
+                      },
+                      "UpdateExpression": "SET cantidadStock = :myValueRef",
+                      "ExpressionAttributeValues": {
+                        ":myValueRef": {
+                          "N.$": "$.stock.cantidadStock"
+                        }
+                      }
+                    },
+                    "Next": "Fail (1)"
+                  },
+                  "Fail (1)": {
+                    "Type": "Fail"
+                  },
+                  "Success": {
+                    "Type": "Succeed"
+                  },
+                  "SNS Publish": {
+                    "Type": "Task",
+                    "Resource": "arn:aws:states:::sns:publish",
+                    "Parameters": {
+                      "Message": {
+                        "message": "there is not enogh inventory"
+                      },
+                      "TopicArn": "arn:aws:sns:us-east-1:103504445265:NotifyMeBilling"
+                    },
+                    "Next": "Fail"
+                  },
+                  "Fail": {
+                    "Type": "Fail"
+                  }
                 }
-            ],
-            "End": true
+              },
+              "ItemsPath": "$.elementos",
+              "ResultPath": "$.Item",
+              "End": true
+            }
+          }
         }
+      ],
+      "End": true,
+      "ResultPath": "$.Item"
     }
+  }
 }
