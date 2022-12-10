@@ -301,35 +301,33 @@ Resources:
                 - !Ref WebBucket
                 - /*
             Principal: '*'
-  # EccomerceStateMachine:
-  #   Type: AWS::Serverless::StateMachine # More info about State Machine Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-statemachine.html
-  #   Properties:
-  #     DefinitionUri: statemachine/stocky_trader.asl.json
-  #     DefinitionSubstitutions:
-  #       RebajarInventarioArn: !GetAtt RebajarDelStock.Arn
-  #       ProductoTable: !Ref producto
-  #       AprobationActivity: !GetAtt AprobacionActivity.Arn
-  #       SendEmailByNotification: !GetAtt StockBuyerFunction.Arn
-  #       DDBPutItem: !Sub arn:${AWS::Partition}:states:::dynamodb:putItem
-  #       
-  #     Events:
-  #       HourlyTradingSchedule:
-  #         Type: Schedule # More info about Schedule Event Source: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-statemachine-schedule.html
-  #         Properties:
-  #           Description: Schedule to run the stock trading state machine every hour
-  #           Enabled: False # This schedule is disabled by default to avoid incurring charges.
-  #           Schedule: "rate(1 hour)"
-  #     Policies: # Find out more about SAM policy templates: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-templates.html
-  #       - LambdaInvokePolicy:
-  #           FunctionName: !Ref StockCheckerFunction
-  #       - LambdaInvokePolicy:
-  #           FunctionName: !Ref StockSellerFunction
-  #       - LambdaInvokePolicy:
-  #           FunctionName: !Ref StockBuyerFunction
-  #       - DynamoDBWritePolicy:
-  #           TableName: !Ref TransactionTable
+  EccomerceStateMachine:
+    Type: AWS::Serverless::StateMachine # More info about State Machine Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-statemachine.html
+    Properties:
+      DefinitionUri: statemachine/stock_trader.asl.json
+      DefinitionSubstitutions:
+        RebajarInventario: !GetAtt RebajarDelStock.Arn
+        # EnviaCorreoArn: !Ref TopicEcommerce
+        DBUpdateproducto: !Sub arn:${AWS::Partition}:states:::dynamodb:updateItem
+        DBGetproducto: !Sub arn:${AWS::Partition}:states:::dynamodb:getItem
+        tableProducto: !Ref producto
+        AprobacionCompra: !Ref AprobacionFunction
+        # SendSNS: !Sub arn:${AWS::Partition}:states:::sns:publish
+        InvokeLambdaRes: !Sub arn:${AWS::Partition}:states:::lambda:invoke
+      Events:
+        HourlyTradingSchedule:
+          Type: Schedule # More info about Schedule Event Source: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-statemachine-schedule.html
+          Properties:
+            Description: Schedule to run the stock trading state machine every hour
+            Enabled: False # This schedule is disabled by default to avoid incurring charges.
+            Schedule: "rate(1 hour)"
+      Policies: # Find out more about SAM policy templates: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-templates.html
+        - LambdaInvokePolicy:
+            FunctionName: !Ref RebajarDelStock
+        - DynamoDBWritePolicy:
+            TableName: !Ref producto
 
-  MySNSTopic:
+  TopicEcommerce:
     Type: AWS::SNS::Topic
     Properties:
       Subscription:
@@ -337,7 +335,7 @@ Resources:
             !Ref EndpointSubcription
           Protocol: email
         
-      TopicName: NotificaNuevaCompra
+      TopicName: !Sub 'NotificaNuevaCompra-${AWS::Region}-${AWS::AccountId}'
 
   AprobacionActivity:
     Type: AWS::StepFunctions::Activity
@@ -373,4 +371,6 @@ Outputs:
   WebBucket:
     Description: "Bucket donde se guarda el front"
     Value: !Sub 'e-commerce-${AWS::Region}-${AWS::AccountId}'
+
+
 

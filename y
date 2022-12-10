@@ -10,6 +10,8 @@ confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
 disable_rollback = true
 image_repositories = []
+profile = "sahily-cli"
+parameter_overrides = "EndpointSubcription=\"sahily.exe@gmail.com\""
 
 [default]
 [default.deploy]
@@ -23,3 +25,4 @@ capabilities = "CAPABILITY_IAM"
 disable_rollback = true
 image_repositories = []
 profile = "sahily-cli"
+parameter_overrides = "EndpointSubcription=\"sahily.exe@gmail.com\""
