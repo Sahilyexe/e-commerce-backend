@@ -12,7 +12,7 @@
               "Type": "Task",
               "Resource": "arn:aws:states:::sns:publish",
               "Parameters": {
-                "TopicArn": "arn:aws:sns:us-east-1:103504445265:NotifyMeBilling",
+                "TopicArn": "${EnviaCorreoArn}",
                 "Message": {
                   "mensaje": "Acaban de realizar una compra"
                 }
@@ -34,7 +34,7 @@
                 "States": {
                   "DynamoDB GetItem": {
                     "Type": "Task",
-                    "Resource": "${DBGetproducto}",
+                    "Resource": "arn:aws:states:::dynamodb:getItem",
                     "Parameters": {
                       "TableName": "${tableProducto}",
                       "AttributesToGet": [
@@ -66,7 +66,7 @@
                   },
                   "Rebaja del inventario": {
                     "Type": "Task",
-                    "Resource": "${InvokeLambdaRes}",
+                    "Resource": "arn:aws:states:::lambda:invoke",
                     "Parameters": {
                       "FunctionName": "${RebajarInventario}",
                       "Payload": {
@@ -95,9 +95,10 @@
                     "Type": "Task",
                     "Resource": "arn:aws:states:::sns:publish",
                     "Parameters": {
-                      "TopicArn": "arn:aws:sns:us-east-1:103504445265:NotifyMeBilling",
+                      "TopicArn": "${EnviaCorreoArn}",
                       "Message": {
-                        "success": "https://sako8j8lp7.execute-api.us-east-1.amazonaws.com/Prod/aprobacion"
+                        "success": "https://sako8j8lp7.execute-api.us-east-1.amazonaws.com/Prod/aprobacion/aprobar",
+                        "fallo": "https://sako8j8lp7.execute-api.us-east-1.amazonaws.com/Prod/aprobacion/rechazar"
                       }
                     },
                     "ResultPath": null,
@@ -123,7 +124,7 @@
                   },
                   "DynamoDB UpdateItem": {
                     "Type": "Task",
-                    "Resource": "${DBUpdateproducto}",
+                    "Resource": "arn:aws:states:::dynamodb:updateItem",
                     "Parameters": {
                       "TableName": "${tableProducto}",
                       "Key": {
@@ -153,7 +154,7 @@
                       "Message": {
                         "message": "there is not enogh inventory"
                       },
-                      "TopicArn": "arn:aws:sns:us-east-1:103504445265:NotifyMeBilling"
+                      "TopicArn": "${EnviaCorreoArn}"
                     },
                     "Next": "Fail"
                   },

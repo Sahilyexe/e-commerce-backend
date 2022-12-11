@@ -305,15 +305,16 @@ Resources:
     Type: AWS::Serverless::StateMachine # More info about State Machine Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-statemachine.html
     Properties:
       DefinitionUri: statemachine/stock_trader.asl.json
+      # RoleArn: !GetAtst StepfunctionRole.Arn
       DefinitionSubstitutions:
         RebajarInventario: !GetAtt RebajarDelStock.Arn
-        # EnviaCorreoArn: !Ref TopicEcommerce
-        DBUpdateproducto: !Sub arn:${AWS::Partition}:states:::dynamodb:updateItem
-        DBGetproducto: !Sub arn:${AWS::Partition}:states:::dynamodb:getItem
+        EnviaCorreoArn: !GetAtt TopicEcommerce.TopicArn
+      #   DBUpdateproducto: !Sub arn:${AWS::Partition}:states:::dynamodb:updateItem
+      #   DBGetproducto: !Sub arn:${AWS::Partition}:states:::dynamodb:getItem
         tableProducto: !Ref producto
-        AprobacionCompra: !Ref AprobacionFunction
-        # SendSNS: !Sub arn:${AWS::Partition}:states:::sns:publish
-        InvokeLambdaRes: !Sub arn:${AWS::Partition}:states:::lambda:invoke
+        AprobacionCompra: !Ref AprobacionActivity
+      #   # SendSNS: !Sub arn:${AWS::Partition}:states:::sns:publish
+      #   InvokeLambdaRes: !Sub arn:${AWS::Partition}:states:::lambda:invoke
       Events:
         HourlyTradingSchedule:
           Type: Schedule # More info about Schedule Event Source: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-statemachine-schedule.html
@@ -324,8 +325,10 @@ Resources:
       Policies: # Find out more about SAM policy templates: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-templates.html
         - LambdaInvokePolicy:
             FunctionName: !Ref RebajarDelStock
-        - DynamoDBWritePolicy:
+        - DynamoDBReadPolicy:
             TableName: !Ref producto
+        - SNSPublishMessagePolicy:
+            TopicName: !GetAtt TopicEcommerce.TopicName
 
   TopicEcommerce:
     Type: AWS::SNS::Topic
@@ -363,6 +366,39 @@ Resources:
           Properties:
             Path: /aprobaciones/{id}
             Method: POST
+  StepfunctionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: RolEjecucionLambda
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: '*'
+        # - PolicyName: RolPublish
+        #   PolicyDocument:
+        #     Version: "2012-10-17"
+        #     Statement:
+        #       - Effect: Allow
+        #         Action:
+        #           - sns:*
+        #         Resource: '*'
+
 Outputs:
   WebEndpoint:
     Description: "API Gateway endpoint URL for Prod stage"
