@@ -325,7 +325,7 @@ Resources:
       Policies: # Find out more about SAM policy templates: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-templates.html
         - LambdaInvokePolicy:
             FunctionName: !Ref RebajarDelStock
-        - DynamoDBReadPolicy:
+        - DynamoDBCrudPolicy:
             TableName: !Ref producto
         - SNSPublishMessagePolicy:
             TopicName: !GetAtt TopicEcommerce.TopicName
@@ -355,7 +355,7 @@ Resources:
       MemorySize: 128
       Timeout: 100
       Description: Se aprueba o se rechaza la compra
-      Role: arn:aws:iam::103504445265:role/service-role/aprobacion-compra-role-8h6vwqip
+      Role: !GetAtt StepfunctionRole.Arn
       Environment:
         Variables:
           # Make table name accessible as environment variable from function code during execution
@@ -380,7 +380,17 @@ Resources:
               - 'sts:AssumeRole'
       Path: /
       Policies:
-        - PolicyName: RolEjecucionLambda
+        - PolicyName: LambdaActivityPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - states:SendTaskSuccess
+                  - states:SendTaskFailure
+                  - states:GetActivityTask
+                Resource: !Ref AprobacionActivity
+        - PolicyName: LambdaExcecutionPolicymine
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -390,14 +400,6 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: '*'
-        # - PolicyName: RolPublish
-        #   PolicyDocument:
-        #     Version: "2012-10-17"
-        #     Statement:
-        #       - Effect: Allow
-        #         Action:
-        #           - sns:*
-        #         Resource: '*'
 
 Outputs:
   WebEndpoint:

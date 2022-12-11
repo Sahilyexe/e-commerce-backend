@@ -23,18 +23,18 @@ exports.aprobacionHandler = async (event) => {
   const activity= await stepfunctionsClient.getActivityTask(paramsAcivity).promise();
   console.info('activity'+activity)
  
- if(id=='aprobar'){
-  var paramsNoAprobado = {
-    output: '201', /* required */
-    taskToken: activity.taskToken /* required */
-  };
-  await stepfunctionsClient.sendTaskSuccess(paramsNoAprobado).promise();
- }else{
+ if(respuesta=='aprobar'){
   var paramsAprobado = {
     output: '200', /* required */
     taskToken: activity.taskToken /* required */
   };
   await stepfunctionsClient.sendTaskSuccess(paramsAprobado).promise();
+ }else{
+  var paramsNoAprobado = {
+    output: '201', /* required */
+    taskToken: activity.taskToken /* required */
+  };
+  await stepfunctionsClient.sendTaskSuccess(paramsNoAprobado).promise();
  }
    
     // TODO implement
