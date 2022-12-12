@@ -309,10 +309,13 @@ Resources:
       DefinitionSubstitutions:
         RebajarInventario: !GetAtt RebajarDelStock.Arn
         EnviaCorreoArn: !GetAtt TopicEcommerce.TopicArn
-      #   DBUpdateproducto: !Sub arn:${AWS::Partition}:states:::dynamodb:updateItem
+      #  DBUpdateproducto: !Sub arn:${AWS::Partition}:states:::dynamodb:updateItem
       #   DBGetproducto: !Sub arn:${AWS::Partition}:states:::dynamodb:getItem
         tableProducto: !Ref producto
         AprobacionCompra: !Ref AprobacionActivity
+        ConfirmacionCompra: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/aprobaciones/aprobar"
+        NoConfirmacionCompra: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/aprobaciones/rechazar"
+
       #   # SendSNS: !Sub arn:${AWS::Partition}:states:::sns:publish
       #   InvokeLambdaRes: !Sub arn:${AWS::Partition}:states:::lambda:invoke
       Events:
@@ -365,7 +368,7 @@ Resources:
           Type: Api
           Properties:
             Path: /aprobaciones/{id}
-            Method: POST
+            Method: GET
   StepfunctionRole:
     Type: 'AWS::IAM::Role'
     Properties:

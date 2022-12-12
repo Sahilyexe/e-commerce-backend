@@ -97,8 +97,8 @@
                     "Parameters": {
                       "TopicArn": "${EnviaCorreoArn}",
                       "Message": {
-                        "success": "https://sako8j8lp7.execute-api.us-east-1.amazonaws.com/Prod/aprobacion/aprobar",
-                        "fallo": "https://sako8j8lp7.execute-api.us-east-1.amazonaws.com/Prod/aprobacion/rechazar"
+                        "success": "${ConfirmacionCompra}",
+                        "fallo": "${NoConfirmacionCompra}"
                       }
                     },
                     "ResultPath": null,

@@ -40,6 +40,9 @@ exports.aprobacionHandler = async (event) => {
     // TODO implement
     const response = {
         statusCode: 200,
+        headers: {
+          "Access-Control-Allow-Origin": "*"
+        }
     };
     return response;
  
