@@ -38,37 +38,37 @@ Resources:
           # Make table name accessible as environment variable from function code during execution
           TABLE_CARRITO: !Ref sesion
       Events:
-        Api:
+        ApiCrearSesion:
           Type: Api
           Properties:
             Path: /crearsesion
             Method: POST
        #     RestApiId: !Ref ApiGatewayApi
-  crearorden:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/handlers/put-orden.putItemHandler
-      Runtime: nodejs14.x
-      Architectures:
-        - x86_64
-      MemorySize: 128
-      Timeout: 100
-      Description: esta tabla guarda ya la compra final.
-      Policies:
-        # Give Create/Read/Update/Delete Permissions to the SampleTable
-        - DynamoDBCrudPolicy:
-            TableName: !Ref orden
-      Environment:
-        Variables:
-          # Make table name accessible as environment variable from function code during execution
-          TABLE_ORDEN: !Ref orden
-      Events:
-        Api:
-          Type: Api
-          Properties:
-            Path: /crearOrden
-            Method: POST
-       #     RestApiId: !Ref ApiGatewayApi
+  # crearorden:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     Handler: src/handlers/put-orden.putItemHandler
+  #     Runtime: nodejs14.x
+  #     Architectures:
+  #       - x86_64
+  #     MemorySize: 128
+  #     Timeout: 100
+  #     Description: esta tabla guarda ya la compra final.
+  #     Policies:
+  #       # Give Create/Read/Update/Delete Permissions to the SampleTable
+  #       - DynamoDBCrudPolicy:
+  #           TableName: !Ref transacciones
+  #     Environment:
+  #       Variables:
+  #         # Make table name accessible as environment variable from function code during execution
+  #         TABLE_ORDEN: !Ref transacciones
+  #     Events:
+  #       Api:
+  #         Type: Api
+  #         Properties:
+  #           Path: /crearOrden
+  #           Method: POST
+  #      #     RestApiId: !Ref ApiGatewayApi
   getsesion:
     Type: AWS::Serverless::Function
     Properties:
@@ -88,56 +88,56 @@ Resources:
           # Make table name accessible as environment variable from function code during execution
           TABLE_CARRITO: !Ref sesion
       Events:
-        Api:
+        ApiGetSesion:
           Type: Api
           Properties:
             Path: /obtenerOrden/{id}
             Method: GET
 
-  publishSMS:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/handlers/publish-sms.publishHandler
-      Runtime: nodejs14.x
-      Architectures:
-        - x86_64
-      MemorySize: 128
-      Timeout: 100
-      Description: Metodo para consultar a traves de un id.
-      Role: !GetAtt RootRole.Arn
+  # publishSMS:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     Handler: src/handlers/publish-sms.publishHandler
+  #     Runtime: nodejs14.x
+  #     Architectures:
+  #       - x86_64
+  #     MemorySize: 128
+  #     Timeout: 100
+  #     Description: Metodo para consultar a traves de un id.
+  #     Role: !GetAtt RootRole.Arn
       
-  RootRole:
-    Type: 'AWS::IAM::Role'
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-            Action:
-              - 'sts:AssumeRole'
-      Path: /
-      Policies:
-        - PolicyName: RolEjecucionLambda
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - logs:CreateLogGroup
-                  - logs:CreateLogStream
-                  - logs:PutLogEvents
-                Resource: '*'
-        - PolicyName: RolPublish
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - sns:*
-                Resource: '*'
+  # RootRole:
+  #   Type: 'AWS::IAM::Role'
+  #   Properties:
+  #     AssumeRolePolicyDocument:
+  #       Version: "2012-10-17"
+  #       Statement:
+  #         - Effect: Allow
+  #           Principal:
+  #             Service:
+  #               - lambda.amazonaws.com
+  #           Action:
+  #             - 'sts:AssumeRole'
+  #     Path: /
+  #     Policies:
+  #       - PolicyName: RolEjecucionLambda
+  #         PolicyDocument:
+  #           Version: "2012-10-17"
+  #           Statement:
+  #             - Effect: Allow
+  #               Action:
+  #                 - logs:CreateLogGroup
+  #                 - logs:CreateLogStream
+  #                 - logs:PutLogEvents
+  #               Resource: '*'
+  #       - PolicyName: RolPublish
+  #         PolicyDocument:
+  #           Version: "2012-10-17"
+  #           Statement:
+  #             - Effect: Allow
+  #               Action:
+  #                 - sns:*
+  #               Resource: '*'
   crearproducto:
     Type: AWS::Serverless::Function
     Properties:
@@ -152,15 +152,15 @@ Resources:
         # Give Create/Read/Update/Delete Permissions to the SampleTable
         - DynamoDBCrudPolicy:
             TableName: !Ref producto
-        - S3CrudPolicy: 
-            BucketName: !Ref WebBucket
+        # - S3CrudPolicy: 
+        #     BucketName: !Ref WebBucket
       Environment:
         Variables:
           # Make table name accessible as environment variable from function code during execution
           TABLE_PRODUCTO: !Ref producto
           WEB_BUCKET: !Sub e-commerce-${AWS::Region}-${AWS::AccountId}
       Events:
-        Api:
+        ApiCrearProducto:
           Type: Api
           Properties:
             Path: /crearproducto
@@ -185,7 +185,7 @@ Resources:
           # Make table name accessible as environment variable from function code during execution
           TABLE_PRODUCTO: !Ref producto
       Events:
-        Api:
+        ApiGetProductos:
           Type: Api
           Properties:
             Path: /getProductos
@@ -209,7 +209,7 @@ Resources:
           # Make table name accessible as environment variable from function code during execution
           TABLE_PRODUCTO: !Ref producto
       Events:
-        Api:
+        ApiGetProducto:
           Type: Api
           Properties:
             Path: /getProducto/{id}
@@ -255,7 +255,7 @@ Resources:
         ReadCapacityUnits: 2
         WriteCapacityUnits: 2
 
-  orden:
+  transacciones:
     Type: AWS::Serverless::SimpleTable
     Properties:
       PrimaryKey:
@@ -301,6 +301,7 @@ Resources:
                 - !Ref WebBucket
                 - /*
             Principal: '*'
+  
   EccomerceStateMachine:
     Type: AWS::Serverless::StateMachine # More info about State Machine Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-statemachine.html
     Properties:
@@ -315,16 +316,6 @@ Resources:
         AprobacionCompra: !Ref AprobacionActivity
         ConfirmacionCompra: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/aprobaciones/aprobar"
         NoConfirmacionCompra: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/aprobaciones/rechazar"
-
-      #   # SendSNS: !Sub arn:${AWS::Partition}:states:::sns:publish
-      #   InvokeLambdaRes: !Sub arn:${AWS::Partition}:states:::lambda:invoke
-      Events:
-        HourlyTradingSchedule:
-          Type: Schedule # More info about Schedule Event Source: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-statemachine-schedule.html
-          Properties:
-            Description: Schedule to run the stock trading state machine every hour
-            Enabled: False # This schedule is disabled by default to avoid incurring charges.
-            Schedule: "rate(1 hour)"
       Policies: # Find out more about SAM policy templates: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-templates.html
         - LambdaInvokePolicy:
             FunctionName: !Ref RebajarDelStock
@@ -332,7 +323,24 @@ Resources:
             TableName: !Ref producto
         - SNSPublishMessagePolicy:
             TopicName: !GetAtt TopicEcommerce.TopicName
-
+      Events:
+        DisparaStateMachine:
+          Type: Api
+          Properties:
+            Path: /Comprar 
+            Method: post
+            RestApiId: 
+              Ref: MyRestApi
+  MyRestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Description: A test API
+      Name: DisparaStateMachineCompra
+      StageName: Prod
+      MethodSettings:
+        - ResourcePath: /
+          HttpMethod: POST       
+  
   TopicEcommerce:
     Type: AWS::SNS::Topic
     Properties:
@@ -364,7 +372,7 @@ Resources:
           # Make table name accessible as environment variable from function code during execution
           ACTIVITY: !GetAtt AprobacionActivity.Arn
       Events:
-        Api:
+        ApiAprobaciones:
           Type: Api
           Properties:
             Path: /aprobaciones/{id}
@@ -408,6 +416,9 @@ Outputs:
   WebEndpoint:
     Description: "API Gateway endpoint URL for Prod stage"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  StateMachineEndPoint:
+    Description: "API Gateway endpoint URL for Prod stage"
+    Value: !Sub "https://${MyRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
 
   WebBucket:
     Description: "Bucket donde se guarda el front"
