@@ -247,7 +247,7 @@ Resources:
       Policies:
         # Give Create/Read/Update/Delete Permissions to the SampleTable
         - StepFunctionsExecutionPolicy:
-            StateMachineName: !Ref EccomerceStateMachine
+            StateMachineName: !GetAtt EccomerceStateMachine.Name
       Environment:
         Variables:
           # Make table name accessible as environment variable from function code during execution
