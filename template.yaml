@@ -234,6 +234,32 @@ Resources:
           # Make table name accessible as environment variable from function code during execution
           TABLE_PRODUCTO: !Ref producto          
 
+  invokeStepFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/invoke-step-function.invokeStepFunctionHandler
+      Runtime: nodejs14.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Se consulta un producto
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the SampleTable
+        - StepFunctionsExecutionPolicy:
+            StateMachineName: !Ref EccomerceStateMachine
+      Environment:
+        Variables:
+          # Make table name accessible as environment variable from function code during execution
+          STATE_MACHINE: !Ref EccomerceStateMachine
+      Events:
+        ApiGetProducto:
+          Type: Api
+          Properties:
+            Path: /Comprar
+            Method: POST
+            RestApiId: 
+              Ref: MyRestApi
  
   producto:
     Type: AWS::Serverless::SimpleTable
@@ -323,14 +349,14 @@ Resources:
             TableName: !Ref producto
         - SNSPublishMessagePolicy:
             TopicName: !GetAtt TopicEcommerce.TopicName
-      Events:
-        DisparaStateMachine:
-          Type: Api
-          Properties:
-            Path: /Comprar 
-            Method: post
-            RestApiId: 
-              Ref: MyRestApi
+  #     Events:
+  #       DisparaStateMachine:
+  #         Type: Api
+  #         Properties:
+  #           Path: /Comprar 
+  #           Method: post
+  #           RestApiId: 
+  #             Ref: MyRestApi
   MyRestApi:
     Type: AWS::Serverless::Api
     Properties:
