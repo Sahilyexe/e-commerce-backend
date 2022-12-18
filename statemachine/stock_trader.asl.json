@@ -58,7 +58,7 @@
                     "Choices": [
                       {
                         "Variable": "$.stock.cantidadStock",
-                        "StringGreaterThanEqualsPath": "$.cantidadCompra",
+                        "StringGreaterThanEqualsPath": "$.strcantidadCompra",
                         "Next": "Rebaja del inventario"
                       }
                     ],
@@ -71,7 +71,7 @@
                       "FunctionName": "${RebajarInventario}",
                       "Payload": {
                         "cantidadStock.$": "$.stock.cantidadStock",
-                        "cantidadCompra.$": "$.cantidadCompra",
+                        "cantidadCompra.$": "$.strcantidadCompra",
                         "id.$": "$.id"
                       }
                     },
@@ -120,7 +120,29 @@
                         "Next": "DynamoDB UpdateItem"
                       }
                     ],
-                    "Default": "Success"
+                    "Default": "DynamoDB PutItem"
+                  }, 
+                  "DynamoDB PutItem": {
+                    "Type": "Task",
+                    "Resource": "arn:aws:states:::dynamodb:putItem",
+                    "Parameters": {
+                      "TableName": "${tabletransacciones}",
+                      "Item": {
+                        "id": {
+                          "S.$": "$.id"
+                        },
+                        "nombreProducto": {
+                          "S.$": "$.nombre"
+                        },
+                        "precio": {
+                          "N.$": "States.JsonToString($.precio)"
+                        },
+                        "cantidadComprada": {
+                          "S.$": "$.strcantidadCompra"
+                        }
+                      }
+                    }, 
+                    "Next": "Success"
                   },
                   "DynamoDB UpdateItem": {
                     "Type": "Task",
