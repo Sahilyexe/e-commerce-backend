@@ -44,31 +44,7 @@ Resources:
             Path: /crearsesion
             Method: POST
        #     RestApiId: !Ref ApiGatewayApi
-  # crearorden:
-  #   Type: AWS::Serverless::Function
-  #   Properties:
-  #     Handler: src/handlers/put-orden.putItemHandler
-  #     Runtime: nodejs14.x
-  #     Architectures:
-  #       - x86_64
-  #     MemorySize: 128
-  #     Timeout: 100
-  #     Description: esta tabla guarda ya la compra final.
-  #     Policies:
-  #       # Give Create/Read/Update/Delete Permissions to the SampleTable
-  #       - DynamoDBCrudPolicy:
-  #           TableName: !Ref transacciones
-  #     Environment:
-  #       Variables:
-  #         # Make table name accessible as environment variable from function code during execution
-  #         TABLE_ORDEN: !Ref transacciones
-  #     Events:
-  #       Api:
-  #         Type: Api
-  #         Properties:
-  #           Path: /crearOrden
-  #           Method: POST
-  #      #     RestApiId: !Ref ApiGatewayApi
+  
   getsesion:
     Type: AWS::Serverless::Function
     Properties:
@@ -94,50 +70,6 @@ Resources:
             Path: /obtenerOrden/{id}
             Method: GET
 
-  # publishSMS:
-  #   Type: AWS::Serverless::Function
-  #   Properties:
-  #     Handler: src/handlers/publish-sms.publishHandler
-  #     Runtime: nodejs14.x
-  #     Architectures:
-  #       - x86_64
-  #     MemorySize: 128
-  #     Timeout: 100
-  #     Description: Metodo para consultar a traves de un id.
-  #     Role: !GetAtt RootRole.Arn
-      
-  # RootRole:
-  #   Type: 'AWS::IAM::Role'
-  #   Properties:
-  #     AssumeRolePolicyDocument:
-  #       Version: "2012-10-17"
-  #       Statement:
-  #         - Effect: Allow
-  #           Principal:
-  #             Service:
-  #               - lambda.amazonaws.com
-  #           Action:
-  #             - 'sts:AssumeRole'
-  #     Path: /
-  #     Policies:
-  #       - PolicyName: RolEjecucionLambda
-  #         PolicyDocument:
-  #           Version: "2012-10-17"
-  #           Statement:
-  #             - Effect: Allow
-  #               Action:
-  #                 - logs:CreateLogGroup
-  #                 - logs:CreateLogStream
-  #                 - logs:PutLogEvents
-  #               Resource: '*'
-  #       - PolicyName: RolPublish
-  #         PolicyDocument:
-  #           Version: "2012-10-17"
-  #           Statement:
-  #             - Effect: Allow
-  #               Action:
-  #                 - sns:*
-  #               Resource: '*'
   crearproducto:
     Type: AWS::Serverless::Function
     Properties:
@@ -339,6 +271,7 @@ Resources:
       #  DBUpdateproducto: !Sub arn:${AWS::Partition}:states:::dynamodb:updateItem
       #   DBGetproducto: !Sub arn:${AWS::Partition}:states:::dynamodb:getItem
         tableProducto: !Ref producto
+        tabletransacciones: !Ref transacciones
         AprobacionCompra: !Ref AprobacionActivity
         ConfirmacionCompra: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/aprobaciones/aprobar"
         NoConfirmacionCompra: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/aprobaciones/rechazar"
@@ -347,16 +280,11 @@ Resources:
             FunctionName: !Ref RebajarDelStock
         - DynamoDBCrudPolicy:
             TableName: !Ref producto
+        - DynamoDBCrudPolicy:
+            TableName: !Ref transacciones
         - SNSPublishMessagePolicy:
             TopicName: !GetAtt TopicEcommerce.TopicName
-  #     Events:
-  #       DisparaStateMachine:
-  #         Type: Api
-  #         Properties:
-  #           Path: /Comprar 
-  #           Method: post
-  #           RestApiId: 
-  #             Ref: MyRestApi
+
   MyRestApi:
     Type: AWS::Serverless::Api
     Properties:
