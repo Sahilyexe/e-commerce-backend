@@ -30,9 +30,9 @@
                 "ProcessorConfig": {
                   "Mode": "INLINE"
                 },
-                "StartAt": "DynamoDB GetItem",
+                "StartAt": "Obtener inventario",
                 "States": {
-                  "DynamoDB GetItem": {
+                  "Obtener inventario": {
                     "Type": "Task",
                     "Resource": "arn:aws:states:::dynamodb:getItem",
                     "Parameters": {
@@ -48,12 +48,12 @@
                       }
                     },
                     "ResultPath": "$.stock",
-                    "Next": "Choice",
+                    "Next": "Existe stock",
                     "ResultSelector": {
                       "cantidadStock.$": "$.Item.cantidadStock.N"
                     }
                   },
-                  "Choice": {
+                  "Existe stock": {
                     "Type": "Choice",
                     "Choices": [
                       {
@@ -62,7 +62,7 @@
                         "Next": "Rebaja del inventario"
                       }
                     ],
-                    "Default": "SNS Publish"
+                    "Default": "Notifica no hay inventario"
                   },
                   "Rebaja del inventario": {
                     "Type": "Task",
@@ -102,9 +102,9 @@
                       }
                     },
                     "ResultPath": null,
-                    "Next": "Step Functions Run Activity"
+                    "Next": "Esperar Aprobacion manual"
                   },
-                  "Step Functions Run Activity": {
+                  "Esperar Aprobacion manual": {
                     "Type": "Task",
                     "Resource": "${AprobacionCompra}",
                     "TimeoutSeconds": 300,
@@ -117,12 +117,12 @@
                       {
                         "Variable": "$.output",
                         "NumericEquals": 201,
-                        "Next": "DynamoDB UpdateItem"
+                        "Next": "Devolver inventario"
                       }
                     ],
-                    "Default": "DynamoDB PutItem"
+                    "Default": "Actualizar tabla transacciones"
                   }, 
-                  "DynamoDB PutItem": {
+                  "Actualizar tabla transacciones": {
                     "Type": "Task",
                     "Resource": "arn:aws:states:::dynamodb:putItem",
                     "Parameters": {
@@ -144,7 +144,7 @@
                     }, 
                     "Next": "Success"
                   },
-                  "DynamoDB UpdateItem": {
+                  "Devolver inventario": {
                     "Type": "Task",
                     "Resource": "arn:aws:states:::dynamodb:updateItem",
                     "Parameters": {
@@ -161,15 +161,15 @@
                         }
                       }
                     },
-                    "Next": "Fail (1)"
+                    "Next": "Se cancela este elemento"
                   },
-                  "Fail (1)": {
+                  "Se cancela este elemento": {
                     "Type": "Fail"
                   },
                   "Success": {
                     "Type": "Succeed"
                   },
-                  "SNS Publish": {
+                  "Notifica no hay inventario": {
                     "Type": "Task",
                     "Resource": "arn:aws:states:::sns:publish",
                     "Parameters": {
