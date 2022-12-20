@@ -157,6 +157,9 @@
                         },
                         "telefono": {
                           "S.$": "$$.Execution.Input.persona.telefono"
+                        },
+                        "metodoPago": {
+                          "S.$": "$$.Execution.Input.persona.metodoPago"
                         }
                       }
                     }, 
