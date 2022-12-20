@@ -14,7 +14,7 @@ exports.aprobacionHandler = async (event) => {
 
   // Get id from pathParameters from APIGateway because of `/{id}` at template.yaml
   const respuesta = event.pathParameters.id;
-  
+  var mensaje="";
   var paramsAcivity = {
   activityArn: activityArn, /* required */
   workerName: 'aprobador'
@@ -29,20 +29,25 @@ exports.aprobacionHandler = async (event) => {
     taskToken: activity.taskToken /* required */
   };
   await stepfunctionsClient.sendTaskSuccess(paramsAprobado).promise();
+  mensaje="<h2>Ud validó que el cliente realizó el pago</h4>";
+
  }else{
   var paramsNoAprobado = {
     output: '201', /* required */
     taskToken: activity.taskToken /* required */
   };
   await stepfunctionsClient.sendTaskSuccess(paramsNoAprobado).promise();
+  mensaje="<h2>Ud validó que el cliente no realizó el pago</h4>";
  }
    
     // TODO implement
     const response = {
         statusCode: 200,
         headers: {
-          "Access-Control-Allow-Origin": "*"
-        }
+          "Access-Control-Allow-Origin": "*",
+          "Content-Type": "text/html",
+        },
+        body: mensaje
     };
     return response;
  
