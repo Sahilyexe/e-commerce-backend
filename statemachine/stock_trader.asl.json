@@ -131,6 +131,9 @@
                         "id": {
                           "S.$": "$.id"
                         },
+                        "idOrden": {
+                          "S.$": "$$.Execution.Input.idOrden"
+                        },
                         "nombreProducto": {
                           "S.$": "$.nombre"
                         },
@@ -138,7 +141,22 @@
                           "N.$": "States.JsonToString($.precio)"
                         },
                         "cantidadComprada": {
-                          "S.$": "$.strcantidadCompra"
+                          "S.$": "States.JsonToString($.cantidadCompra)"
+                        },
+                        "primerNombre": {
+                          "S.$": "$$.Execution.Input.persona.primerNombre"
+                        },
+                        "primerApellido": {
+                          "S.$": "$$.Execution.Input.persona.primerApellido"
+                        },
+                        "correo": {
+                          "S.$": "$$.Execution.Input.persona.correo"
+                        },
+                        "direccion": {
+                          "S.$": "$$.Execution.Input.persona.direccion"
+                        },
+                        "telefono": {
+                          "S.$": "$$.Execution.Input.persona.telefono"
                         }
                       }
                     }, 

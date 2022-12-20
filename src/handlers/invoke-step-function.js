@@ -33,7 +33,7 @@ exports.invokeStepFunctionHandler = async (event) => {
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "POST"
           },
-        body: JSON.stringify(body)
+        body: JSON.stringify(body.idOrden)
     };
   
     // All log statements are written to CloudWatch

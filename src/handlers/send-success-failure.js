@@ -29,7 +29,7 @@ exports.aprobacionHandler = async (event) => {
     taskToken: activity.taskToken /* required */
   };
   await stepfunctionsClient.sendTaskSuccess(paramsAprobado).promise();
-  mensaje="<h2>Ud validó que el cliente realizó el pago</h4>";
+  mensaje="<h2>Ud validó que el cliente realizó el pago</h2>";
 
  }else{
   var paramsNoAprobado = {
@@ -37,7 +37,7 @@ exports.aprobacionHandler = async (event) => {
     taskToken: activity.taskToken /* required */
   };
   await stepfunctionsClient.sendTaskSuccess(paramsNoAprobado).promise();
-  mensaje="<h2>Ud validó que el cliente no realizó el pago</h4>";
+  mensaje="<h4>Ud validó que el cliente no realizó el pago</h4>";
  }
    
     // TODO implement

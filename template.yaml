@@ -217,7 +217,7 @@ Resources:
     Type: AWS::Serverless::SimpleTable
     Properties:
       PrimaryKey:
-        Name: id
+        Name: idOrden
         Type: String
       ProvisionedThroughput:
         ReadCapacityUnits: 2

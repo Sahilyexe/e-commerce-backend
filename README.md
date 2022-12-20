@@ -1,5 +1,5 @@
-# Actualizacion Datos
-Con esta aplicación actualiza tus datos de forma muy fácil. Esta basada en arquitectura serverless, esto quiere decir que los recursos no necesitan tu administración, se crean y se destruyen en minutos cuando tu quieras y pagas solamente por lo que utilizas.
+# Actualizacion Datos Backend
+Con esta aplicacion se demuestra la capacidad del servicio step fuctión para cntrolsrCon esta aplicación actualiza tus datos de forma muy fácil. Esta basada en arquitectura serverless, esto quiere decir que los recursos no necesitan tu administración, se crean y se destruyen en minutos cuando tu quieras y pagas solamente por lo que utilizas.
 
 ![diagrama-actualiza-datos.png](./Documentation/diagrama-actualiza-datos.png)
 
@@ -16,4 +16,4 @@ Con esta aplicación actualiza tus datos de forma muy fácil. Esta basada en arq
 
 ## Eliminar la aplicación y los recursos
 - Ejecuta `aws s3 rm s3://<nombre bucket> --recursive`
-- Ejecuta `SAM delete --stack-name actualiza-datos`
+- Ejecuta `SAM delete --stack-name e-commerce`
