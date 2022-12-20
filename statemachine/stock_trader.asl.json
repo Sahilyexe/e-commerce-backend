@@ -14,7 +14,8 @@
               "Parameters": {
                 "TopicArn": "${EnviaCorreoArn}",
                 "Message": {
-                  "mensaje": "Acaban de realizar una compra"
+                  "mensaje": "Acaban de realizar una compra",
+                  "datos.$": "$"
                 }
               },
               "End": true
