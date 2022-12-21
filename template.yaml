@@ -273,6 +273,7 @@ Resources:
         tableProducto: !Ref producto
         tabletransacciones: !Ref transacciones
         AprobacionCompra: !Ref AprobacionActivity
+        correoOperaciones: !Ref EndpointSubcription
         ConfirmacionCompra: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/aprobaciones/aprobar"
         NoConfirmacionCompra: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/aprobaciones/rechazar"
       Policies: # Find out more about SAM policy templates: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-templates.html
@@ -284,6 +285,8 @@ Resources:
             TableName: !Ref transacciones
         - SNSPublishMessagePolicy:
             TopicName: !GetAtt TopicEcommerce.TopicName
+        - SESCrudPolicy:
+            IdentityName: !Ref IdentityEmail
 
   MyRestApi:
     Type: AWS::Serverless::Api
@@ -365,6 +368,20 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: '*'
+  TemplateEmail:
+    Type: 'AWS::SES::Template'
+    Properties:
+      Template:
+        TemplateName: PlantillaNotificacionNuevaCompra
+        SubjectPart: Nueva Compra
+        TextPart: Se ha registrado una nueva compra
+        HtmlPart: <html></html>
+  
+  IdentityEmail:
+    Type: AWS::SES::EmailIdentity
+    Properties: 
+      EmailIdentity: !Ref EndpointSubcription
+      
 
 Outputs:
   WebEndpoint:

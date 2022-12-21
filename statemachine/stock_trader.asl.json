@@ -204,12 +204,24 @@
                   },
                   "Notifica no hay inventario": {
                     "Type": "Task",
-                    "Resource": "arn:aws:states:::sns:publish",
+                    "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
                     "Parameters": {
-                      "Message": {
-                        "message": "there is not enogh inventory"
+                      "Destination": {
+                        "ToAddresses": [
+                          "${correoOperaciones}"
+                        ]
                       },
-                      "TopicArn": "${EnviaCorreoArn}"
+                      "Message": {
+                        "Body": {
+                          "Text": {
+                            "Data.$": "States.Format('No hay inventario para satisfacer la compra. Producto {} cantidad pedida : {} Cantidad en inventario {}. Puedes contactarlo al celular {} o al correo {}.',$.nombre,$.cantidadCompra,$.stock.cantidadStock, $$.Execution.Input.persona.telefono,$$.Execution.Input.persona.correo)"
+                          }
+                        },
+                        "Subject": {
+                          "Data.$": "States.Format('Sin inventario {}',  $$.Execution.Input.idOrden)"
+                        }
+                      },
+                      "Source": "${correoOperaciones}"
                     },
                     "Next": "Fail"
                   },
