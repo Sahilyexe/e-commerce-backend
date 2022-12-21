@@ -6,18 +6,29 @@
       "Type": "Parallel",
       "Branches": [
         {
-          "StartAt": "Envia notificacion",
+          "StartAt": "Notifica nueva compra",
           "States": {
-            "Envia notificacion": {
+            "Notifica nueva compra": {
               "Type": "Task",
-              "Resource": "arn:aws:states:::sns:publish",
               "Parameters": {
-                "TopicArn": "${EnviaCorreoArn}",
+                "Destination": {
+                  "ToAddresses": [
+                    "${correoOperaciones}"
+                  ]
+                },
                 "Message": {
-                  "mensaje": "Acaban de realizar una compra",
-                  "datos.$": "$"
-                }
+                  "Body": {
+                    "Text": {
+                      "Data.$": "States.Format('El cliente {} {} compró la cantidad de {} producto con el metodo de pago {}. Puedes contactarlo al celular {} o al correo {}.',$.persona.primerNombre,$.persona.primerApellido,States.ArrayLength($.elementos),$.metodoPago, $.persona.telefono,$.persona.correo)"
+                    }
+                  },
+                  "Subject": {
+                    "Data.$": "States.Format('Nueva compra {}',  $.idOrden)"
+                  }
+                },
+                "Source": "${correoOperaciones}"
               },
+              "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
               "End": true
             }
           }
