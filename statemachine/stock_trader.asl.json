@@ -105,13 +105,26 @@
                   },
                   "Enviar aprobacion": {
                     "Type": "Task",
-                    "Resource": "arn:aws:states:::sns:publish",
+                    "Resource": "arn:aws:states:::aws-sdk:ses:sendEmail",
                     "Parameters": {
-                      "TopicArn": "${EnviaCorreoArn}",
+                      "Destination": {
+                        "ToAddresses": [
+                          "${correoOperaciones}"
+                        ]
+                      },
                       "Message": {
-                        "success": "${ConfirmacionCompra}",
-                        "fallo": "${NoConfirmacionCompra}"
-                      }
+                        "Body": {
+                          "Text": {
+                            "Data.$": "States.Format('Si el cliente {} pago presione ${ConfirmacionCompra}. Si no pago presione ${NoConfirmacionCompra}. Puedes contactarlo al celular {} o al correo {}.',$.nombre,$$.Execution.Input.persona.telefono,$$.Execution.Input.persona.correo)"
+                          }
+                        },
+                        "Subject": {
+                          "Data.$": "States.Format('Confirmacion pago {}',  $$.Execution.Input.idOrden)"
+                        }
+                      },
+                      "Source": "${correoOperaciones}"
+                  
+
                     },
                     "ResultPath": null,
                     "Next": "Esperar Aprobacion manual"
@@ -171,7 +184,7 @@
                           "S.$": "$$.Execution.Input.persona.telefono"
                         },
                         "metodoPago": {
-                          "S.$": "$$.Execution.Input.persona.metodoPago"
+                          "S.$": "$$.Execution.Input.metodoPago"
                         }
                       }
                     }, 
