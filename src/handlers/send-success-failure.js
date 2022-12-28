@@ -29,7 +29,7 @@ exports.aprobacionHandler = async (event) => {
     taskToken: activity.taskToken /* required */
   };
   await stepfunctionsClient.sendTaskSuccess(paramsAprobado).promise();
-  mensaje="<h2>Ud validó que el cliente realizó el pago</h2>";
+  mensaje="<div  style='padding: 12px; border: 1px solid #c9e1f4;background: #ecf5fb;-webkit-border-radius: 10px;'><h2 style='font: bold 16px/16px Verdana, sans-serif;    color: #090;margin: 0; padding: 0;'>Ud valid &oacute; que el cliente realiz &oacute; el pago</h2></div>";
 
  }else{
   var paramsNoAprobado = {
@@ -37,7 +37,7 @@ exports.aprobacionHandler = async (event) => {
     taskToken: activity.taskToken /* required */
   };
   await stepfunctionsClient.sendTaskSuccess(paramsNoAprobado).promise();
-  mensaje="<h4>Ud validó que el cliente no realizó el pago</h4>";
+  mensaje="<div  style='padding: 12px; border: 1px solid #c9e1f4;background: #ecf5fb;-webkit-border-radius: 10px;'><h2 style='color: #900;font: bold 16px/16px Verdana, sans-serif;margin: 0;padding: 0;  margin-bottom: 12px;'>Ud valid &oacute;  que el cliente no realiz &oacute; el pago</h2></div>";
  }
    
     // TODO implement
