@@ -20,6 +20,3 @@ Con esta aplicación se controla el inventario de una tienda online  Esta basada
 
 ## Desarrollador
 -  sahily.exe@gmail.com
-
-
-de la siguiente forma. Cuando se recibe una solicitud es decir el cliente presionó comprar en el la aplicación el state machine recibe un json con la información del cliente, los productos a comprar y el número de la orden. En ese momento el state machiche consuta el stock en la tabla de productos, luego verifica que la cantidad en stock sea superior o igual a la cantidad pedida, luego si la cantidad solicitada menor o igual a la cantidad pedida por el cliente entonces el state machine rebaja del inventario la cantidad solicitada y espera por una confirmación manual del usuaro
