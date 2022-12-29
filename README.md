@@ -1,7 +1,7 @@
-# Actualizacion Datos Backend
-Con esta aplicacion se demuestra la capacidad del servicio step fuctión para cntrolsrCon esta aplicación actualiza tus datos de forma muy fácil. Esta basada en arquitectura serverless, esto quiere decir que los recursos no necesitan tu administración, se crean y se destruyen en minutos cuando tu quieras y pagas solamente por lo que utilizas.
+# Eccomerce backend
+Con esta aplicación se controla el inventario de una tienda online  Esta basada en arquitectura serverless, se utilizan servicios como step functions, lambdas, api gategay, dynamodb, simple email services.
 
-![diagrama-actualiza-datos.png](./Documentation/diagrama-actualiza-datos.png)
+![diagrama-actualiza-datos.png](./Documentation/Diagrama.png)
 
 ## Pre-requisitos
 - Cuenta de AWS creada
@@ -17,3 +17,9 @@ Con esta aplicacion se demuestra la capacidad del servicio step fuctión para cn
 ## Eliminar la aplicación y los recursos
 - Ejecuta `aws s3 rm s3://<nombre bucket> --recursive`
 - Ejecuta `SAM delete --stack-name e-commerce`
+
+## Desarrollador
+-  sahily.exe@gmail.com
+
+
+de la siguiente forma. Cuando se recibe una solicitud es decir el cliente presionó comprar en el la aplicación el state machine recibe un json con la información del cliente, los productos a comprar y el número de la orden. En ese momento el state machiche consuta el stock en la tabla de productos, luego verifica que la cantidad en stock sea superior o igual a la cantidad pedida, luego si la cantidad solicitada menor o igual a la cantidad pedida por el cliente entonces el state machine rebaja del inventario la cantidad solicitada y espera por una confirmación manual del usuaro
