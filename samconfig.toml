@@ -8,7 +8,7 @@ s3_prefix = "mock"
 region = "us-east-1"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
-disable_rollback = true
+disable_rollback = false
 image_repositories = []
 profile = "sahily-cli"
-parameter_overrides = "EndpointSubcription=\"sahily.exe@gmail.com\""
+parameter_overrides = "EndpointSubcription=\"nerila4191@haikido.com\""
