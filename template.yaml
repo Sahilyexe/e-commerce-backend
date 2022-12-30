@@ -2,7 +2,7 @@
 
 AWSTemplateFormatVersion: 2010-09-09
 Description: >-
-  actualizacion-datos-bakend
+  e-scommerce
 
 # Transform section specifies one or more macros that AWS CloudFormation uses to process your template
 # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-section-structure.html
