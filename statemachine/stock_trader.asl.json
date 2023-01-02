@@ -115,7 +115,7 @@
                       "Message": {
                         "Body": {
                           "Text": {
-                            "Data.$": "States.Format('Si el cliente {} pago presione ${ConfirmacionCompra}. Si no pago presione ${NoConfirmacionCompra}. Puedes contactarlo al celular {} o al correo {}.',$.nombre,$$.Execution.Input.persona.telefono,$$.Execution.Input.persona.correo)"
+                            "Data.$": "States.Format('Si el cliente {} {} pagó presione ${ConfirmacionCompra}. Si no pagó presione ${NoConfirmacionCompra}. Puedes contactarlo al celular {} o al correo {}.',$$.Execution.Input.persona.primerNombre,$$.Execution.Input.persona.primerApellido,$$.Execution.Input.persona.telefono,$$.Execution.Input.persona.correo)"
                           }
                         },
                         "Subject": {
